@@ -21,6 +21,16 @@ class Map {
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
     }
+
+    wallAt(x, y) {
+        if (x < 0 || x > WINDOW_WIDTH || y < 0 || y > WINDOW_HEIGHT) {
+            return true;
+        }
+        const gridX = Math.floor(x / TILE_SIZE);
+        const gridY = Math.floor(y / TILE_SIZE);
+        return this.grid[gridY][gridX] == 1
+    }
+
     render() {
         for (var i = 0; i < MAP_NUM_ROWS; i++) {
             for (var j = 0; j < MAP_NUM_COLS; j++) {
@@ -51,8 +61,14 @@ class Player {
         const moveStep = this.walkDirection * this.moveSpeed;
         
         this.rotationAngle += this.turnDirection * this.rotationSpeed;
-        this.x += moveStep * Math.cos(this.rotationAngle);
-        this.y += moveStep * Math.sin(this.rotationAngle);
+        const newX = this.x + moveStep * Math.cos(this.rotationAngle);
+        const newY = this.y + moveStep * Math.sin(this.rotationAngle);
+
+        if (!grid.wallAt(newX, newY)) {
+            this.x = newX;
+            this.y = newY;
+        }
+
     }
 
     render() {
