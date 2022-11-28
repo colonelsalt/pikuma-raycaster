@@ -81,20 +81,119 @@ class Player {
         fill("red");
         circle(this.x, this.y, this.radius);
         stroke("red");
-        line(this.x, this.y,
-             this.x + 30 * Math.cos(this.rotationAngle), this.y + 30 * Math.sin(this.rotationAngle)
-        );
+        //line(this.x, this.y,
+        //     this.x + 30 * Math.cos(this.rotationAngle), this.y + 30 * Math.sin(this.rotationAngle)
+        //);
     }
 }
 
 class Ray {
     constructor(rayAngle) {
-        this.rayAngle = rayAngle;
+        this.rayAngle = normalizeAngle(rayAngle);
+        this.wallHitX = 0;
+        this.wallHitY = 0;
+        this.distance = 0;
+        this.wasHitVertical = false;
+
+        this.isFacingDown = this.rayAngle > 0 && this.rayAngle < Math.PI;
+        this.isFacingRight = this.rayAngle < 0.5 * Math.PI || this.rayAngle > 1.5 * Math.PI;
+    }
+
+    cast(columnId) {
+        // Horizontal intersections
+        let yintercept = Math.floor(player.y / TILE_SIZE) * TILE_SIZE;
+        if (this.isFacingDown) {
+            yintercept += TILE_SIZE;
+        }
+        let xintercept = player.x + ((yintercept - player.y) / Math.tan(this.rayAngle));
+        let ystep = TILE_SIZE;
+        if (!this.isFacingDown) {
+            ystep *= -1;
+        }
+
+        let xstep = TILE_SIZE / Math.tan(this.rayAngle);
+        if ((!this.isFacingRight && xstep > 0) || (this.isFacingRight && xstep < 0)) {
+            xstep *= -1;
+        }
+        let nextIntersectionX = xintercept;
+        let nextIntersectionY = yintercept;
+        if (!this.isFacingDown) {
+            nextIntersectionY--;
+        }
+        
+        let horizontalWallHitFound = false;
+        let horizontalWallHitX = 0;
+        let horizontalWallHitY = 0;
+
+        while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
+            && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT) {
+            if (grid.wallAt(nextIntersectionX, nextIntersectionY)) {
+                horizontalWallHitFound = true;
+                horizontalWallHitX = nextIntersectionX;
+                horizontalWallHitY = nextIntersectionY;
+                break;
+            } else {
+                nextIntersectionX += xstep;
+                nextIntersectionY += ystep;
+            }
+        }
+
+        // Vertical intersections
+        xintercept = Math.floor(player.x / TILE_SIZE) * TILE_SIZE;
+        if (this.isFacingRight) {
+            xintercept += TILE_SIZE;
+        }
+        yintercept = player.y + ((xintercept - player.x) * Math.tan(this.rayAngle));
+        xstep = TILE_SIZE;
+        if (!this.isFacingRight) {
+            xstep *= -1;
+        }
+
+        ystep = TILE_SIZE * Math.tan(this.rayAngle);
+        if ((!this.isFacingDown && ystep > 0) || (this.isFacingDown && ystep < 0)) {
+            ystep *= -1;
+        }
+        nextIntersectionX = xintercept;
+        nextIntersectionY = yintercept;
+        if (!this.isFacingRight) {
+            nextIntersectionX--;
+        }
+        
+        let verticalWallHitFound = false;
+        let verticalWallHitX = 0;
+        let verticalWallHitY = 0;
+
+        while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
+            && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT) {
+            if (grid.wallAt(nextIntersectionX, nextIntersectionY)) {
+                verticalWallHitFound = true;
+                verticalWallHitX = nextIntersectionX;
+                verticalWallHitY = nextIntersectionY;
+                break;
+            } else {
+                nextIntersectionX += xstep;
+                nextIntersectionY += ystep;
+            }
+        }
+
+        const xDist = horizontalWallHitFound ? distance(player.x, player.y, horizontalWallHitX, horizontalWallHitY) : Number.MAX_VALUE;
+        const yDist = verticalWallHitFound ? distance(player.x, player.y, verticalWallHitX, verticalWallHitY) : Number.MAX_VALUE;
+
+        if (xDist < yDist) {
+            this.wallHitX = horizontalWallHitX;
+            this.wallHitY = horizontalWallHitY;
+            this.distance = xDist;
+        } else {
+            this.wallHitX = verticalWallHitX;
+            this.wallHitY = verticalWallHitY;
+            this.distance = yDist;
+            this.wasHitVertical = true;
+        }
     }
 
     render() {
         stroke("rgba(255, 0, 0, 0.3)");
-        line(player.x, player.y, player.x + Math.cos(this.rayAngle) * 30, player.y + Math.sin(this.rayAngle) * 30);
+        line(player.x, player.y, this.wallHitX, this.wallHitY);
     }
 }
 
@@ -132,15 +231,28 @@ function castAllRays() {
 
     var rayAngle = player.rotationAngle - (FOV_ANGLE / 2.0);
     rays = [];
-    //for (var i = 0; i < NUM_RAYS; i++) {
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < NUM_RAYS; i++) {
         var ray = new Ray(rayAngle);
-        //ray.cast();
+        ray.cast(columnId);
 
         rays.push(ray);
         rayAngle += FOV_ANGLE / NUM_RAYS;
         columnId++;
     }
+}
+
+function distance(px, py, qx, qy) {
+    xDiff = qx - px;
+    yDiff = qy - py;
+    return Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
+}
+
+function normalizeAngle(angle) {
+    angle %= (2 * Math.PI);
+    if (angle < 0) {
+        angle += 2 * Math.PI;
+    }
+    return angle;
 }
 
 function setup() {
