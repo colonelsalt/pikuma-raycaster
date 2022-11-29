@@ -98,7 +98,7 @@ class Ray {
         this.isFacingRight = this.rayAngle < 0.5 * Math.PI || this.rayAngle > 1.5 * Math.PI;
     }
 
-    cast(columnId) {
+    cast() {
         // Horizontal intersections
         let yintercept = Math.floor(player.y / TILE_SIZE) * TILE_SIZE;
         if (this.isFacingDown) {
@@ -220,17 +220,14 @@ function keyReleased() {
 }
 
 function castAllRays() {
-    var columnId = 0;
-
     var rayAngle = player.rotationAngle - (FOV_ANGLE / 2.0);
     rays = [];
     for (var i = 0; i < NUM_RAYS; i++) {
         var ray = new Ray(rayAngle);
-        ray.cast(columnId);
+        ray.cast();
 
         rays.push(ray);
         rayAngle += FOV_ANGLE / NUM_RAYS;
-        columnId++;
     }
 }
 
@@ -242,8 +239,9 @@ function renderProjectedWalls() {
         const projPlaneDist = (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);
         const wallStripHeight = (TILE_SIZE / rayDistance) * projPlaneDist;
 
-        const alpha = 1 - (rayDistance / WINDOW_WIDTH);
-        fill(`rgba(255, 255, 255, ${alpha})`);
+        const brightness = ray.wasHitVertical ? 255 : 200;
+
+        fill(`rgba(${brightness}, ${brightness}, ${brightness}, 1.0)`);
         noStroke();
         rect(
             i * WALL_STRIP_WIDTH,
