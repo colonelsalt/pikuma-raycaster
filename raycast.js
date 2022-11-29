@@ -234,6 +234,23 @@ function castAllRays() {
     }
 }
 
+function renderProjectedWalls() {
+    for (var i = 0; i < NUM_RAYS; i++) {
+        const ray = rays[i];
+        const projPlaneDist = (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);
+        const wallStripHeight = (TILE_SIZE / ray.distance) * projPlaneDist;
+
+        fill("rgba(255, 255, 255, 1.0)");
+        noStroke();
+        rect(
+            i * WALL_STRIP_WIDTH,
+            (WINDOW_HEIGHT / 2) - (wallStripHeight / 2),
+            WALL_STRIP_WIDTH,
+            wallStripHeight
+        );
+    }
+}
+
 function scaledRect(x, y, width, height) {
     rect(MINIMAP_SCALE_FACTOR * x, MINIMAP_SCALE_FACTOR * y, MINIMAP_SCALE_FACTOR * width, MINIMAP_SCALE_FACTOR * height);
 }
@@ -272,8 +289,10 @@ function update() {
 }
 
 function draw() {
+    clear("#212121");
     update();
 
+    renderProjectedWalls();
     grid.render();
     for (ray of rays) {
         ray.render();
