@@ -1,4 +1,4 @@
-const TILE_SIZE = 32;
+const TILE_SIZE = 64;
 const MAP_NUM_ROWS = 11;
 const MAP_NUM_COLS = 15;
 
@@ -7,7 +7,7 @@ const WINDOW_HEIGHT = MAP_NUM_ROWS * TILE_SIZE;
 
 const FOV_ANGLE = 60 * (Math.PI / 180);
 
-const WALL_STRIP_WIDTH = 30;
+const WALL_STRIP_WIDTH = 1;
 const NUM_RAYS = WINDOW_WIDTH / WALL_STRIP_WIDTH;
 
 class Map {
@@ -117,9 +117,6 @@ class Ray {
         }
         let nextIntersectionX = xintercept;
         let nextIntersectionY = yintercept;
-        if (!this.isFacingDown) {
-            nextIntersectionY--;
-        }
         
         let horizontalWallHitFound = false;
         let horizontalWallHitX = 0;
@@ -127,7 +124,7 @@ class Ray {
 
         while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
             && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT) {
-            if (grid.wallAt(nextIntersectionX, nextIntersectionY)) {
+            if (grid.wallAt(nextIntersectionX, nextIntersectionY - (this.isFacingDown ? 0 : 1))) {
                 horizontalWallHitFound = true;
                 horizontalWallHitX = nextIntersectionX;
                 horizontalWallHitY = nextIntersectionY;
@@ -155,9 +152,6 @@ class Ray {
         }
         nextIntersectionX = xintercept;
         nextIntersectionY = yintercept;
-        if (!this.isFacingRight) {
-            nextIntersectionX--;
-        }
         
         let verticalWallHitFound = false;
         let verticalWallHitX = 0;
@@ -165,7 +159,7 @@ class Ray {
 
         while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
             && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT) {
-            if (grid.wallAt(nextIntersectionX, nextIntersectionY)) {
+            if (grid.wallAt(nextIntersectionX - (this.isFacingRight ? 0 : 1), nextIntersectionY)) {
                 verticalWallHitFound = true;
                 verticalWallHitX = nextIntersectionX;
                 verticalWallHitY = nextIntersectionY;
