@@ -242,7 +242,8 @@ function renderProjectedWalls() {
         const projPlaneDist = (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);
         const wallStripHeight = (TILE_SIZE / rayDistance) * projPlaneDist;
 
-        fill("rgba(255, 255, 255, 1.0)");
+        const alpha = 1 - (rayDistance / WINDOW_WIDTH);
+        fill(`rgba(255, 255, 255, ${alpha})`);
         noStroke();
         rect(
             i * WALL_STRIP_WIDTH,
