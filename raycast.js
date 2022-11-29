@@ -10,6 +10,8 @@ const FOV_ANGLE = 60 * (Math.PI / 180);
 const WALL_STRIP_WIDTH = 1;
 const NUM_RAYS = WINDOW_WIDTH / WALL_STRIP_WIDTH;
 
+const MINIMAP_SCALE_FACTOR = 0.2;
+
 class Map {
     constructor() {
         this.grid = [
@@ -44,7 +46,7 @@ class Map {
                 var tileColor = this.grid[i][j] == 1 ? "#222" : "#fff";
                 stroke("#222");
                 fill(tileColor);
-                rect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                scaledRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
             }
         }
     }
@@ -79,11 +81,8 @@ class Player {
     render() {
         noStroke();
         fill("red");
-        circle(this.x, this.y, this.radius);
+        scaledCircle(this.x, this.y, this.radius);
         stroke("red");
-        //line(this.x, this.y,
-        //     this.x + 30 * Math.cos(this.rotationAngle), this.y + 30 * Math.sin(this.rotationAngle)
-        //);
     }
 }
 
@@ -186,8 +185,8 @@ class Ray {
     }
 
     render() {
-        stroke("rgba(255, 0, 0, 0.3)");
-        line(player.x, player.y, this.wallHitX, this.wallHitY);
+        stroke("rgba(255, 0, 0, 1)");
+        scaledLine(player.x, player.y, this.wallHitX, this.wallHitY);
     }
 }
 
@@ -233,6 +232,18 @@ function castAllRays() {
         rayAngle += FOV_ANGLE / NUM_RAYS;
         columnId++;
     }
+}
+
+function scaledRect(x, y, width, height) {
+    rect(MINIMAP_SCALE_FACTOR * x, MINIMAP_SCALE_FACTOR * y, MINIMAP_SCALE_FACTOR * width, MINIMAP_SCALE_FACTOR * height);
+}
+
+function scaledCircle(x, y, radius) {
+    circle(MINIMAP_SCALE_FACTOR * x, MINIMAP_SCALE_FACTOR * y, MINIMAP_SCALE_FACTOR * radius);
+}
+
+function scaledLine(px, py, qx, qy) {
+    line(MINIMAP_SCALE_FACTOR * px, MINIMAP_SCALE_FACTOR * py, MINIMAP_SCALE_FACTOR * qx, MINIMAP_SCALE_FACTOR * qy);
 }
 
 function distance(px, py, qx, qy) {
