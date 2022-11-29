@@ -237,8 +237,10 @@ function castAllRays() {
 function renderProjectedWalls() {
     for (var i = 0; i < NUM_RAYS; i++) {
         const ray = rays[i];
+        const rayDistance = ray.distance * Math.cos(ray.rayAngle - player.rotationAngle);
+
         const projPlaneDist = (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);
-        const wallStripHeight = (TILE_SIZE / ray.distance) * projPlaneDist;
+        const wallStripHeight = (TILE_SIZE / rayDistance) * projPlaneDist;
 
         fill("rgba(255, 255, 255, 1.0)");
         noStroke();
