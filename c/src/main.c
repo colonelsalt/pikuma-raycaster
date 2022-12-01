@@ -7,10 +7,14 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
 int isGameRunning = FALSE;
+int ticksLastFrame = 0;
+
+int playerX, playerY;
 
 void setup()
 {
-
+    playerX = 0;
+    playerY = 0;
 }
 
 void processInput()
@@ -66,10 +70,28 @@ void destroyWindow()
     SDL_Quit();
 }
 
+void update()
+{
+    int msToWait = TARGET_FRAME_TIME - (SDL_GetTicks() - ticksLastFrame);
+    if (msToWait > 0 && msToWait < TARGET_FRAME_TIME)
+        SDL_Delay(msToWait);
+
+    float deltaTime = (SDL_GetTicks() - ticksLastFrame) / 1000.0f;
+
+    ticksLastFrame = SDL_GetTicks();
+
+    playerX += 50 * deltaTime;
+    playerY += 50 * deltaTime;
+}
+
 void render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    SDL_Rect rect = { playerX, playerY, 20, 20 };
+    SDL_RenderFillRect(renderer, &rect);
 
     SDL_RenderPresent(renderer);
 }
@@ -82,6 +104,8 @@ int main()
     while(isGameRunning)
     {
         processInput();
+        update();
+        render();
     }
 
     destroyWindow();
