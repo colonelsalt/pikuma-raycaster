@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 #include <SDL2/SDL.h>
 
 #include "constants.h"
@@ -39,6 +40,19 @@ struct Player
     float turnSpeed;
 } player;
 
+struct Ray
+{
+    float angle;
+    float wallHitX, wallHitY;
+    float distance;
+    int wasHitVertical;
+    int facingUp;
+    int facingDown;
+    int facingRight;
+    int facingLeft;
+    int wallHitContent;
+} rays[NUM_RAYS];
+
 void setup()
 {
     player.x = WINDOW_WIDTH / 2;
@@ -52,7 +66,7 @@ void setup()
     player.turnSpeed = 45 * (PI / 180.0f);
 }
 
-int gridWallAt(float x, float y)
+int getGridContent(float x, float y)
 {
     if (x < 0 || x > WINDOW_WIDTH || y < 0 || y > WINDOW_HEIGHT)
         return TRUE;
@@ -60,7 +74,7 @@ int gridWallAt(float x, float y)
     int tileX = x / TILE_SIZE;
     int tileY = y / TILE_SIZE;
 
-    return map[tileY][tileX] != 0;
+    return map[tileY][tileX];
 }
 
 void movePlayer(float deltaTime)
@@ -72,7 +86,7 @@ void movePlayer(float deltaTime)
     float newX = player.x + cos(player.rotationAngle) * moveStep;
     float newY = player.y + sin(player.rotationAngle) * moveStep;
 
-    if (!gridWallAt(newX, newY))
+    if (getGridContent(newX, newY) == 0)
     {
         player.x = newX;
         player.y = newY;
@@ -80,23 +94,181 @@ void movePlayer(float deltaTime)
 
 }
 
+float normalizeAngle(float angle)
+{
+    angle = remainder(angle, TWO_PI);
+    if (angle < 0)
+        angle = TWO_PI + angle;
+    return angle;
+}
+
+float distance(float px, float py, float qx, float qy)
+{
+    return sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py));
+}
+
+void castRay(float rayAngle, int rayId)
+{
+    rayAngle = normalizeAngle(rayAngle);
+    int isRayFacingDown = rayAngle > 0 && rayAngle < PI;
+    int isRayFacingUp = !isRayFacingDown;
+    int isRayFacingRight = rayAngle < PI * 0.5 || rayAngle > PI * 1.5;
+    int isRayFacingLeft = !isRayFacingRight;
+
+    // Horizontal intersections
+    float yintercept = floor(player.y / TILE_SIZE) * TILE_SIZE;
+    if (isRayFacingDown)
+        yintercept += TILE_SIZE;
+    
+    float xintercept = player.x + ((yintercept - player.y) / tan(rayAngle));
+    float ystep = TILE_SIZE;
+    if (isRayFacingUp)
+        ystep *= -1;
+
+    float xstep = TILE_SIZE / tan(rayAngle);
+    if ((isRayFacingLeft && xstep > 0) || (isRayFacingRight && xstep < 0))
+        xstep *= -1;
+    
+    float nextIntersectionX = xintercept;
+    float nextIntersectionY = yintercept;
+    
+    int horizontalWallHitFound = FALSE;
+    float horizontalWallHitX = 0;
+    float horizontalWallHitY = 0;
+    int horizontalWallContent = 0;
+
+    while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
+        && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT)
+    {
+        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (isRayFacingDown ? 0 : 1));
+        if (gridContent != 0)
+        {
+            // Hit a wall
+            horizontalWallHitFound = TRUE;
+            horizontalWallHitX = nextIntersectionX;
+            horizontalWallHitY = nextIntersectionY;
+            horizontalWallContent = gridContent;
+            break;
+        }
+        else
+        {
+            nextIntersectionX += xstep;
+            nextIntersectionY += ystep;
+        }
+    }
+
+    // Vertical intersections
+    xintercept = floor(player.x / TILE_SIZE) * TILE_SIZE;
+    if (isRayFacingRight)
+        xintercept += TILE_SIZE;
+    
+    yintercept = player.y + ((xintercept - player.x) * tan(rayAngle));
+    xstep = TILE_SIZE;
+    if (isRayFacingLeft)
+        xstep *= -1;
+
+    ystep = TILE_SIZE * tan(rayAngle);
+    if ((isRayFacingUp && ystep > 0) || (isRayFacingDown && ystep < 0))
+        ystep *= -1;
+    
+    nextIntersectionX = xintercept;
+    nextIntersectionY = yintercept;
+    
+    int verticalWallHitFound = FALSE;
+    float verticalWallHitX = 0;
+    float verticalWallHitY = 0;
+    int verticalWallContent = 0;
+
+    while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
+        && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT)
+    {
+        int gridContent = getGridContent(nextIntersectionX - (isRayFacingRight ? 0 : 1), nextIntersectionY);
+        if (gridContent != 0)
+        {
+            // Hit a wall
+            verticalWallHitFound = TRUE;
+            verticalWallHitX = nextIntersectionX;
+            verticalWallHitY = nextIntersectionY;
+            verticalWallContent = gridContent;
+            break;
+        }
+        else
+        {
+            nextIntersectionX += xstep;
+            nextIntersectionY += ystep;
+        }
+    }
+
+    float xDist = horizontalWallHitFound ? distance(player.x, player.y, horizontalWallHitX, horizontalWallHitY) : INT_MAX;
+    float yDist = verticalWallHitFound ? distance(player.x, player.y, verticalWallHitX, verticalWallHitY) : INT_MAX;
+
+    if (yDist < xDist)
+    {
+        rays[rayId].distance = yDist;
+        rays[rayId].wallHitX = verticalWallHitX;
+        rays[rayId].wallHitY = verticalWallHitY;
+        rays[rayId].wallHitContent = verticalWallContent;
+        rays[rayId].wasHitVertical = TRUE;
+    }
+    else
+    {
+        rays[rayId].distance = xDist;
+        rays[rayId].wallHitX = horizontalWallHitX;
+        rays[rayId].wallHitY = horizontalWallHitY;
+        rays[rayId].wallHitContent = horizontalWallContent;
+        rays[rayId].wasHitVertical = FALSE;
+    }
+    rays[rayId].angle = rayAngle;
+    rays[rayId].facingDown = isRayFacingDown;
+    rays[rayId].facingUp = isRayFacingUp;
+    rays[rayId].facingRight = isRayFacingRight;
+    rays[rayId].facingLeft = isRayFacingLeft;
+}
+
+void castAllRays()
+{
+    // first ray is player orientation - FOV/2
+    float rayAngle = player.rotationAngle - (FOV_ANGLE / 2.0);
+
+    for (int i = 0; i < NUM_RAYS; i++)
+    {
+        castRay(rayAngle, i);
+        rayAngle += FOV_ANGLE / NUM_RAYS;
+    }
+}
+
+void drawScaledRect(float x, float y, float width, float height)
+{
+    SDL_Rect rect = {
+        x * MINIMAP_SCALE_FACTOR,
+        y * MINIMAP_SCALE_FACTOR,
+        width * MINIMAP_SCALE_FACTOR,
+        height * MINIMAP_SCALE_FACTOR
+    };
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+void drawScaledLine(float x1, float y1, float x2, float y2)
+{
+    SDL_RenderDrawLine(
+        renderer,
+        x1 * MINIMAP_SCALE_FACTOR,
+        y1 * MINIMAP_SCALE_FACTOR,
+        x2 * MINIMAP_SCALE_FACTOR,
+        y2 * MINIMAP_SCALE_FACTOR
+    );
+}
+
 void renderPlayer()
 {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect playerRect = {
-        player.x * MINIMAP_SCALE_FACTOR,
-        player.y * MINIMAP_SCALE_FACTOR,
-        player.width * MINIMAP_SCALE_FACTOR,
-        player.height * MINIMAP_SCALE_FACTOR
-    };
-    SDL_RenderFillRect(renderer, &playerRect);
-
-    SDL_RenderDrawLine(
-        renderer,
-        player.x * MINIMAP_SCALE_FACTOR,
-        player.y * MINIMAP_SCALE_FACTOR,
-        (player.x + cos(player.rotationAngle) * 40) * MINIMAP_SCALE_FACTOR,
-        (player.y + sin(player.rotationAngle) * 40) * MINIMAP_SCALE_FACTOR
+    drawScaledRect(player.x, player.y, player.width, player.height);
+    
+    drawScaledLine(
+        player.x,
+        player.y,
+        player.x + cos(player.rotationAngle) * 40,
+        player.y + sin(player.rotationAngle) * 40
     );
 }
 
@@ -111,15 +283,17 @@ void renderMap()
             int color = map[i][j] != 0 ? 255 : 0;
 
             SDL_SetRenderDrawColor(renderer, color, color, color, 255);
-            SDL_Rect tileRect = {
-                tileX * MINIMAP_SCALE_FACTOR,
-                tileY * MINIMAP_SCALE_FACTOR,
-                TILE_SIZE * MINIMAP_SCALE_FACTOR,
-                TILE_SIZE * MINIMAP_SCALE_FACTOR
-            };
-            SDL_RenderFillRect(renderer, &tileRect);
-
+            drawScaledRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
         }
+    }
+}
+
+void renderRays()
+{
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    for (int i = 0; i < NUM_RAYS; i++)
+    {
+        drawScaledLine(player.x, player.y, rays[i].wallHitX, rays[i].wallHitY);
     }
 }
 
@@ -203,6 +377,7 @@ void update()
     ticksLastFrame = SDL_GetTicks();
 
     movePlayer(deltaTime);
+    castAllRays();
 }
 
 void render()
@@ -211,7 +386,7 @@ void render()
     SDL_RenderClear(renderer);
 
     renderMap();
-    //renderRays();
+    renderRays();
     renderPlayer();
 
     SDL_RenderPresent(renderer);

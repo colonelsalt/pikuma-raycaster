@@ -14,7 +14,8 @@
 
 #define FOV_ANGLE (60 * (PI / 180.0))
 
-#define NUM_RAYS WINDOW_WIDTH
+#define WALL_STRIP_WIDTH 8
+#define NUM_RAYS (WINDOW_WIDTH / WALL_STRIP_WIDTH)
 
 #define FPS 30
 #define TARGET_FRAME_TIME (1000 / FPS)
