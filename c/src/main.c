@@ -109,24 +109,26 @@ float distance(float px, float py, float qx, float qy)
 
 void castRay(float rayAngle, int rayId)
 {
-    rayAngle = normalizeAngle(rayAngle);
-    int isRayFacingDown = rayAngle > 0 && rayAngle < PI;
-    int isRayFacingUp = !isRayFacingDown;
-    int isRayFacingRight = rayAngle < PI * 0.5 || rayAngle > PI * 1.5;
-    int isRayFacingLeft = !isRayFacingRight;
+    struct Ray* ray = &rays[rayId];
+    ray->angle = normalizeAngle(rayAngle);
+
+    ray->facingDown = ray->angle > 0 && ray->angle < PI;
+    ray->facingUp = !ray->facingDown;
+    ray->facingRight = ray->angle < PI * 0.5 || ray->angle > PI * 1.5;
+    ray->facingLeft = !ray->facingRight;
 
     // Horizontal intersections
     float yintercept = floor(player.y / TILE_SIZE) * TILE_SIZE;
-    if (isRayFacingDown)
+    if (ray->facingDown)
         yintercept += TILE_SIZE;
     
-    float xintercept = player.x + ((yintercept - player.y) / tan(rayAngle));
+    float xintercept = player.x + ((yintercept - player.y) / tan(ray->angle));
     float ystep = TILE_SIZE;
-    if (isRayFacingUp)
+    if (ray->facingUp)
         ystep *= -1;
 
-    float xstep = TILE_SIZE / tan(rayAngle);
-    if ((isRayFacingLeft && xstep > 0) || (isRayFacingRight && xstep < 0))
+    float xstep = TILE_SIZE / tan(ray->angle);
+    if ((ray->facingLeft && xstep > 0) || (ray->facingRight && xstep < 0))
         xstep *= -1;
     
     float nextIntersectionX = xintercept;
@@ -140,7 +142,7 @@ void castRay(float rayAngle, int rayId)
     while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
         && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT)
     {
-        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (isRayFacingDown ? 0 : 1));
+        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (ray->facingDown ? 0 : 1));
         if (gridContent != 0)
         {
             // Hit a wall
@@ -159,16 +161,16 @@ void castRay(float rayAngle, int rayId)
 
     // Vertical intersections
     xintercept = floor(player.x / TILE_SIZE) * TILE_SIZE;
-    if (isRayFacingRight)
+    if (ray->facingRight)
         xintercept += TILE_SIZE;
     
-    yintercept = player.y + ((xintercept - player.x) * tan(rayAngle));
+    yintercept = player.y + ((xintercept - player.x) * tan(ray->angle));
     xstep = TILE_SIZE;
-    if (isRayFacingLeft)
+    if (ray->facingLeft)
         xstep *= -1;
 
-    ystep = TILE_SIZE * tan(rayAngle);
-    if ((isRayFacingUp && ystep > 0) || (isRayFacingDown && ystep < 0))
+    ystep = TILE_SIZE * tan(ray->angle);
+    if ((ray->facingUp && ystep > 0) || (ray->facingDown && ystep < 0))
         ystep *= -1;
     
     nextIntersectionX = xintercept;
@@ -182,7 +184,7 @@ void castRay(float rayAngle, int rayId)
     while (nextIntersectionX >= 0 && nextIntersectionX <= WINDOW_WIDTH
         && nextIntersectionY >= 0 && nextIntersectionY <= WINDOW_HEIGHT)
     {
-        int gridContent = getGridContent(nextIntersectionX - (isRayFacingRight ? 0 : 1), nextIntersectionY);
+        int gridContent = getGridContent(nextIntersectionX - (ray->facingRight ? 0 : 1), nextIntersectionY);
         if (gridContent != 0)
         {
             // Hit a wall
@@ -204,25 +206,20 @@ void castRay(float rayAngle, int rayId)
 
     if (yDist < xDist)
     {
-        rays[rayId].distance = yDist;
-        rays[rayId].wallHitX = verticalWallHitX;
-        rays[rayId].wallHitY = verticalWallHitY;
-        rays[rayId].wallHitContent = verticalWallContent;
-        rays[rayId].wasHitVertical = TRUE;
+        ray->distance = yDist;
+        ray->wallHitX = verticalWallHitX;
+        ray->wallHitY = verticalWallHitY;
+        ray->wallHitContent = verticalWallContent;
+        ray->wasHitVertical = TRUE;
     }
     else
     {
-        rays[rayId].distance = xDist;
-        rays[rayId].wallHitX = horizontalWallHitX;
-        rays[rayId].wallHitY = horizontalWallHitY;
-        rays[rayId].wallHitContent = horizontalWallContent;
-        rays[rayId].wasHitVertical = FALSE;
+        ray->distance = xDist;
+        ray->wallHitX = horizontalWallHitX;
+        ray->wallHitY = horizontalWallHitY;
+        ray->wallHitContent = horizontalWallContent;
+        ray->wasHitVertical = FALSE;
     }
-    rays[rayId].angle = rayAngle;
-    rays[rayId].facingDown = isRayFacingDown;
-    rays[rayId].facingUp = isRayFacingUp;
-    rays[rayId].facingRight = isRayFacingRight;
-    rays[rayId].facingLeft = isRayFacingLeft;
 }
 
 void castAllRays()
