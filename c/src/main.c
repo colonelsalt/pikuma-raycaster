@@ -10,6 +10,10 @@ SDL_Renderer* renderer = NULL;
 int isGameRunning = FALSE;
 int ticksLastFrame = 0;
 
+Uint32* colorBuffer = NULL;
+
+SDL_Texture* colorBufferTexture = NULL;
+
 const int map[MAP_NUM_ROWS][MAP_NUM_COLS] =
 {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1, 1},
@@ -64,12 +68,23 @@ void setup()
     player.rotationAngle = PI / 2.0f;
     player.walkSpeed = 100;
     player.turnSpeed = 45 * (PI / 180.0f);
+
+    colorBuffer = malloc(sizeof(Uint32) * WINDOW_WIDTH * WINDOW_HEIGHT);
+
+    colorBufferTexture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT
+    );
+
 }
 
 int getGridContent(float x, float y)
 {
     if (x < 0 || x > WINDOW_WIDTH || y < 0 || y > WINDOW_HEIGHT)
-        return TRUE;
+        return 1;
 
     int tileX = x / TILE_SIZE;
     int tileY = y / TILE_SIZE;
@@ -201,8 +216,8 @@ void castRay(float rayAngle, int rayId)
         }
     }
 
-    float xDist = horizontalWallHitFound ? distance(player.x, player.y, horizontalWallHitX, horizontalWallHitY) : INT_MAX;
-    float yDist = verticalWallHitFound ? distance(player.x, player.y, verticalWallHitX, verticalWallHitY) : INT_MAX;
+    float xDist = horizontalWallHitFound ? distance(player.x, player.y, horizontalWallHitX, horizontalWallHitY) : FLT_MAX;
+    float yDist = verticalWallHitFound ? distance(player.x, player.y, verticalWallHitX, verticalWallHitY) : FLT_MAX;
 
     if (yDist < xDist)
     {
@@ -358,6 +373,8 @@ int initWindow()
 
 void destroyWindow()
 {
+    free(colorBuffer);
+    SDL_DestroyTexture(colorBufferTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -377,11 +394,32 @@ void update()
     castAllRays();
 }
 
+void clearColorBuffer(Uint32 color)
+{
+    for (int y = 0; y < WINDOW_HEIGHT; y++)
+    {
+        for (int x = 0; x < WINDOW_WIDTH; x++)
+        {
+            colorBuffer[y * WINDOW_WIDTH + x] = 0xFFFF0000;
+        }
+    }
+}
+
+void renderColorBuffer()
+{
+    SDL_UpdateTexture(colorBufferTexture, NULL, colorBuffer, WINDOW_WIDTH * sizeof(Uint32));
+    SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
+}
+
 void render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    renderColorBuffer();
+    clearColorBuffer(0xFF00EE30);
+
+    // render mini-map stuff
     renderMap();
     renderRays();
     renderPlayer();
