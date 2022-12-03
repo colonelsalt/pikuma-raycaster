@@ -394,13 +394,39 @@ void update()
     castAllRays();
 }
 
+void generateWallProjection()
+{
+    for (int i = 0; i < NUM_RAYS; i++)
+    {
+        float perpDist = rays[i].distance * cos(rays[i].angle - player.rotationAngle);
+        float projPlaneDist = (WINDOW_WIDTH / 2.0) / tan(FOV_ANGLE / 2.0);
+        
+        int wallStripHeight = (int)((TILE_SIZE / perpDist) * projPlaneDist);
+
+        int wallTopPixel = (WINDOW_HEIGHT / 2) - (wallStripHeight / 2);
+        if (wallTopPixel < 0)
+            wallTopPixel = 0;
+        
+        int wallBottomPixel = (WINDOW_HEIGHT / 2) + (wallStripHeight / 2);
+        if (wallBottomPixel > WINDOW_HEIGHT)
+            wallBottomPixel = WINDOW_HEIGHT;
+        
+        // Render wall strip from top to bottom
+        for (int y = wallTopPixel; y < wallBottomPixel; y++)
+        {
+            colorBuffer[y * WINDOW_WIDTH + i] = rays[i].wasHitVertical ? 0xFFCCCCCC : 0xFFFFFFFF;
+        }
+
+    }
+}
+
 void clearColorBuffer(Uint32 color)
 {
     for (int y = 0; y < WINDOW_HEIGHT; y++)
     {
         for (int x = 0; x < WINDOW_WIDTH; x++)
         {
-            colorBuffer[y * WINDOW_WIDTH + x] = 0xFFFF0000;
+            colorBuffer[y * WINDOW_WIDTH + x] = color;
         }
     }
 }
@@ -416,8 +442,10 @@ void render()
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    generateWallProjection();
+
     renderColorBuffer();
-    clearColorBuffer(0xFF00EE30);
+    clearColorBuffer(0xFF000000);
 
     // render mini-map stuff
     renderMap();
