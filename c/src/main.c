@@ -411,10 +411,22 @@ void generateWallProjection()
         if (wallBottomPixel > WINDOW_HEIGHT)
             wallBottomPixel = WINDOW_HEIGHT;
         
+        // Render ceiling
+        for (int y = 0; y < wallTopPixel; y++)
+        {
+            colorBuffer[y * WINDOW_WIDTH + i] = 0xFF383838;
+        }
+
         // Render wall strip from top to bottom
         for (int y = wallTopPixel; y < wallBottomPixel; y++)
         {
             colorBuffer[y * WINDOW_WIDTH + i] = rays[i].wasHitVertical ? 0xFFCCCCCC : 0xFFFFFFFF;
+        }
+
+        // Render floor
+        for (int y = wallBottomPixel; y < WINDOW_HEIGHT; y++)
+        {
+            colorBuffer[y * WINDOW_WIDTH + i] = 0xFF707070;
         }
 
     }
