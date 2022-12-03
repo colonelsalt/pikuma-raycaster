@@ -12,6 +12,9 @@
 #define WINDOW_WIDTH (MAP_NUM_COLS * TILE_SIZE)
 #define WINDOW_HEIGHT (MAP_NUM_ROWS * TILE_SIZE)
 
+#define TEX_WIDTH 64
+#define TEX_HEIGHT 64
+
 #define FOV_ANGLE (60 * (PI / 180.0))
 
 #define WALL_STRIP_WIDTH 1

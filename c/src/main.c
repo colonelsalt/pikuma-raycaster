@@ -14,6 +14,8 @@ Uint32* colorBuffer = NULL;
 
 SDL_Texture* colorBufferTexture = NULL;
 
+Uint32* wallTexture = NULL;
+
 const int map[MAP_NUM_ROWS][MAP_NUM_COLS] =
 {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1, 1},
@@ -79,6 +81,17 @@ void setup()
         WINDOW_HEIGHT
     );
 
+    wallTexture = malloc(sizeof(Uint32) * TEX_WIDTH * TEX_HEIGHT);
+    for (int y = 0; y < TEX_HEIGHT; y++)
+    {
+        for (int x = 0; x < TEX_WIDTH; x++)
+        {
+            if (x % 8 && y % 8)
+                wallTexture[y * TEX_WIDTH + x] = 0xFF0000FF;
+            else
+                wallTexture[y * TEX_WIDTH + x] = 0xFF000000;
+        }
+    }
 }
 
 int getGridContent(float x, float y)
@@ -374,6 +387,7 @@ int initWindow()
 void destroyWindow()
 {
     free(colorBuffer);
+    free(wallTexture);
     SDL_DestroyTexture(colorBufferTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -413,22 +427,27 @@ void generateWallProjection()
         
         // Render ceiling
         for (int y = 0; y < wallTopPixel; y++)
-        {
             colorBuffer[y * WINDOW_WIDTH + i] = 0xFF383838;
-        }
+
+        int texOffsetX;
+        if (rays[i].wasHitVertical)
+            texOffsetX = (int)rays[i].wallHitY % TILE_SIZE;
+        else
+            texOffsetX = (int)rays[i].wallHitX % TILE_SIZE;
 
         // Render wall strip from top to bottom
         for (int y = wallTopPixel; y < wallBottomPixel; y++)
         {
-            colorBuffer[y * WINDOW_WIDTH + i] = rays[i].wasHitVertical ? 0xFFCCCCCC : 0xFFFFFFFF;
+            int distFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
+            int texOffsetY = distFromTop * ((float)TEX_HEIGHT / wallStripHeight);
+            Uint32 texelColor = wallTexture[texOffsetY * TEX_HEIGHT + texOffsetX];
+
+            colorBuffer[y * WINDOW_WIDTH + i] = texelColor;
         }
 
         // Render floor
         for (int y = wallBottomPixel; y < WINDOW_HEIGHT; y++)
-        {
             colorBuffer[y * WINDOW_WIDTH + i] = 0xFF707070;
-        }
-
     }
 }
 
