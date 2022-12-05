@@ -16,8 +16,6 @@ uint32_t* colorBuffer = NULL;
 
 SDL_Texture* colorBufferTexture = NULL;
 
-uint32_t* textures[NUM_TEXTURES];
-
 const int map[MAP_NUM_ROWS][MAP_NUM_COLS] =
 {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1, 1},
@@ -77,20 +75,13 @@ void setup()
 
     colorBufferTexture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         WINDOW_WIDTH,
         WINDOW_HEIGHT
     );
 
-    textures[0] = (uint32_t*) REDBRICK_TEXTURE;
-    textures[1] = (uint32_t*) PURPLESTONE_TEXTURE;
-    textures[2] = (uint32_t*) MOSSYSTONE_TEXTURE;
-    textures[3] = (uint32_t*) GRAYSTONE_TEXTURE;
-    textures[4] = (uint32_t*) COLORSTONE_TEXTURE;
-    textures[5] = (uint32_t*) BLUESTONE_TEXTURE;
-    textures[6] = (uint32_t*) WOOD_TEXTURE;
-    textures[7] = (uint32_t*) EAGLE_TEXTURE;
+    loadWallTextures();
 }
 
 int getGridContent(float x, float y)
@@ -385,6 +376,7 @@ int initWindow()
 
 void destroyWindow()
 {
+    freeWallTextures();
     free(colorBuffer);
     SDL_DestroyTexture(colorBufferTexture);
     SDL_DestroyRenderer(renderer);
@@ -433,13 +425,15 @@ void generateWallProjection()
         else
             texOffsetX = (int)rays[i].wallHitX % TILE_SIZE;
 
+        int texNum = rays[i].wallHitContent - 1;
+
         // Render wall strip from top to bottom
         for (int y = wallTopPixel; y < wallBottomPixel; y++)
         {
             int distFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
             int texOffsetY = distFromTop * ((float)TEX_HEIGHT / wallStripHeight);
             
-            uint32_t texelColor = textures[rays[i].wallHitContent - 1][texOffsetY * TEX_HEIGHT + texOffsetX];
+            uint32_t texelColor = wallTextures[texNum].textureBuffer[texOffsetY * TEX_HEIGHT + texOffsetX];
 
             colorBuffer[y * WINDOW_WIDTH + i] = texelColor;
         }
