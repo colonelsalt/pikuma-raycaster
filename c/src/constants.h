@@ -1,3 +1,6 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
 #define FALSE 0
 #define TRUE 1
 
@@ -15,13 +18,14 @@
 #define WINDOW_WIDTH (MAP_NUM_COLS * TILE_SIZE)
 #define WINDOW_HEIGHT (MAP_NUM_ROWS * TILE_SIZE)
 
-#define TEX_WIDTH 64
-#define TEX_HEIGHT 64
-
 #define FOV_ANGLE (60 * (PI / 180.0))
 
 #define WALL_STRIP_WIDTH 1
 #define NUM_RAYS (WINDOW_WIDTH / WALL_STRIP_WIDTH)
 
+#define DIST_PROJ_PLANE ((WINDOW_WIDTH / 2.0) / tan(FOV_ANGLE / 2.0))
+
 #define FPS 30
 #define TARGET_FRAME_TIME (1000 / FPS)
+
+#endif

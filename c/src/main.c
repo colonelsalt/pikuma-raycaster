@@ -242,13 +242,10 @@ void castRay(float rayAngle, int rayId)
 
 void castAllRays()
 {
-    // first ray is player orientation - FOV/2
-    float rayAngle = player.rotationAngle - (FOV_ANGLE / 2.0);
-
     for (int i = 0; i < NUM_RAYS; i++)
     {
+        float rayAngle = player.rotationAngle + atan((i - NUM_RAYS / 2) / DIST_PROJ_PLANE);
         castRay(rayAngle, i);
-        rayAngle += FOV_ANGLE / NUM_RAYS;
     }
 }
 
@@ -403,9 +400,8 @@ void generateWallProjection()
     for (int i = 0; i < NUM_RAYS; i++)
     {
         float perpDist = rays[i].distance * cos(rays[i].angle - player.rotationAngle);
-        float projPlaneDist = (WINDOW_WIDTH / 2.0) / tan(FOV_ANGLE / 2.0);
         
-        int wallStripHeight = (int)((TILE_SIZE / perpDist) * projPlaneDist);
+        int wallStripHeight = (int)((TILE_SIZE / perpDist) * DIST_PROJ_PLANE);
 
         int wallTopPixel = (WINDOW_HEIGHT / 2) - (wallStripHeight / 2);
         if (wallTopPixel < 0)
@@ -426,14 +422,16 @@ void generateWallProjection()
             texOffsetX = (int)rays[i].wallHitX % TILE_SIZE;
 
         int texNum = rays[i].wallHitContent - 1;
+        int texWidth = wallTextures[texNum].width;
+        int texHeight = wallTextures[texNum].height;
 
         // Render wall strip from top to bottom
         for (int y = wallTopPixel; y < wallBottomPixel; y++)
         {
             int distFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
-            int texOffsetY = distFromTop * ((float)TEX_HEIGHT / wallStripHeight);
+            int texOffsetY = distFromTop * ((float)texHeight / wallStripHeight);
             
-            uint32_t texelColor = wallTextures[texNum].textureBuffer[texOffsetY * TEX_HEIGHT + texOffsetX];
+            uint32_t texelColor = wallTextures[texNum].textureBuffer[texOffsetY * texWidth + texOffsetX];
 
             colorBuffer[y * WINDOW_WIDTH + i] = texelColor;
         }
