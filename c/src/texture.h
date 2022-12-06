@@ -1,9 +1,9 @@
-#ifndef TEXTURES_H
-#define TEXTURES_H
+#ifndef TEXTURE_H
+#define TEXTURE_H
 
 #include <stdint.h>
 
-#include "constants.h"
+#include "defs.h"
 #include "upng.h"
 
 typedef struct
