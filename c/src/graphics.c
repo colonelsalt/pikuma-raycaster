@@ -57,6 +57,22 @@ void setPixel(int x, int y, uint32_t color)
     colorBuffer[y * WINDOW_WIDTH + x] = color;
 }
 
+void drawRect(int x, int y, int width, int height, uint32_t color)
+{
+    for (int i = y; i <= (y + height); i++)
+        for (int j = x; j <= (x + width); j++)
+            setPixel(j, i, color);
+}
+
+void drawScaledRect(float x, float y, float width, float height, uint32_t color)
+{
+    drawRect(x * MINIMAP_SCALE_FACTOR,
+             y * MINIMAP_SCALE_FACTOR,
+             width * MINIMAP_SCALE_FACTOR,
+             height * MINIMAP_SCALE_FACTOR,
+             color);
+}
+
 void destroyWindow(void)
 {
     free(colorBuffer);
