@@ -48,7 +48,7 @@ void renderMap()
             int tileX = j * TILE_SIZE;
             int tileY = i * TILE_SIZE;
 
-            uint32_t color = map[i][j] != 0 ? 0xFFFFFFFF : 0;
+            color_t color = map[i][j] != 0 ? 0xFFFFFFFF : 0;
             drawScaledRect(tileX, tileY, TILE_SIZE, TILE_SIZE, color);
         }
     }

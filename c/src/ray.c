@@ -1,6 +1,7 @@
 #include "ray.h"
 
 #include <float.h>
+#include <limits.h>
 #include "player.h"
 #include "map.h"
 #include "graphics.h"

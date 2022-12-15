@@ -6,7 +6,7 @@
 
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
-static uint32_t* colorBuffer = NULL;
+static color_t* colorBuffer = NULL;
 static SDL_Texture* colorBufferTexture = NULL;
 
 bool initWindow(void)
@@ -39,7 +39,7 @@ bool initWindow(void)
     }
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
-    colorBuffer = malloc(sizeof(uint32_t) * WINDOW_WIDTH * WINDOW_HEIGHT);
+    colorBuffer = malloc(sizeof(color_t) * WINDOW_WIDTH * WINDOW_HEIGHT);
 
     colorBufferTexture = SDL_CreateTexture(
         renderer,
@@ -52,12 +52,12 @@ bool initWindow(void)
     return true;
 }
 
-void setPixel(int x, int y, uint32_t color)
+void setPixel(int x, int y, color_t color)
 {
     colorBuffer[y * WINDOW_WIDTH + x] = color;
 }
 
-void drawRect(int x, int y, int width, int height, uint32_t color)
+void drawRect(int x, int y, int width, int height, color_t color)
 {
     for (int i = y; i <= (y + height); i++)
         for (int j = x; j <= (x + width); j++)
@@ -69,7 +69,7 @@ int max(int x, int y)
     return x > y ? x : y;
 }
 
-void drawScaledLine(int x0, int y0, int x1, int y1, uint32_t color)
+void drawScaledLine(int x0, int y0, int x1, int y1, color_t color)
 {
     drawLine(x0 * MINIMAP_SCALE_FACTOR,
              y0 * MINIMAP_SCALE_FACTOR,
@@ -78,7 +78,7 @@ void drawScaledLine(int x0, int y0, int x1, int y1, uint32_t color)
              color);
 }
 
-void drawLine(int x0, int y0, int x1, int y1, uint32_t color)
+void drawLine(int x0, int y0, int x1, int y1, color_t color)
 {
     int deltaX = x1 - x0;
     int deltaY = y1 - y0;
@@ -98,7 +98,7 @@ void drawLine(int x0, int y0, int x1, int y1, uint32_t color)
     }
 }
 
-void drawScaledRect(float x, float y, float width, float height, uint32_t color)
+void drawScaledRect(float x, float y, float width, float height, color_t color)
 {
     drawRect(x * MINIMAP_SCALE_FACTOR,
              y * MINIMAP_SCALE_FACTOR,
@@ -116,7 +116,7 @@ void destroyWindow(void)
     SDL_Quit();
 }
 
-void clearColorBuffer(uint32_t color)
+void clearColorBuffer(color_t color)
 {
     for (int i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; i++)
         colorBuffer[i] = color;
@@ -124,7 +124,7 @@ void clearColorBuffer(uint32_t color)
 
 void renderColorBuffer(void)
 {
-    SDL_UpdateTexture(colorBufferTexture, NULL, colorBuffer, WINDOW_WIDTH * sizeof(uint32_t));
+    SDL_UpdateTexture(colorBufferTexture, NULL, colorBuffer, WINDOW_WIDTH * sizeof(color_t));
     SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
