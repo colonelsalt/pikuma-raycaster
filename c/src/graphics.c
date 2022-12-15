@@ -64,6 +64,40 @@ void drawRect(int x, int y, int width, int height, uint32_t color)
             setPixel(j, i, color);
 }
 
+int max(int x, int y)
+{
+    return x > y ? x : y;
+}
+
+void drawScaledLine(int x0, int y0, int x1, int y1, uint32_t color)
+{
+    drawLine(x0 * MINIMAP_SCALE_FACTOR,
+             y0 * MINIMAP_SCALE_FACTOR,
+             x1 * MINIMAP_SCALE_FACTOR,
+             y1 * MINIMAP_SCALE_FACTOR,
+             color);
+}
+
+void drawLine(int x0, int y0, int x1, int y1, uint32_t color)
+{
+    int deltaX = x1 - x0;
+    int deltaY = y1 - y0;
+
+    int sideLength = max(abs(deltaX), abs(deltaY));
+
+    float xInc = deltaX / (float)sideLength;
+    float yInc = deltaY / (float)sideLength;
+
+    float currX = x0;
+    float currY = y0;
+    for (int i = 0; i < sideLength; i++)
+    {
+        setPixel(round(currX), round(currY), color);
+        currX += xInc;
+        currY += yInc;
+    }
+}
+
 void drawScaledRect(float x, float y, float width, float height, uint32_t color)
 {
     drawRect(x * MINIMAP_SCALE_FACTOR,

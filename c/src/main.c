@@ -121,7 +121,7 @@ void render()
     // render mini-map stuff
     renderMap();
     renderPlayer();
-    // renderRays();
+    renderRays();
     
     renderColorBuffer();
 }
