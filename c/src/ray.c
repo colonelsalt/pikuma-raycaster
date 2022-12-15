@@ -8,12 +8,31 @@
 
 ray_t rays[NUM_RAYS];
 
-float normalizeAngle(float angle)
+void normalizeAngle(float* angle)
 {
-    angle = remainder(angle, TWO_PI);
-    if (angle < 0)
-        angle = TWO_PI + angle;
-    return angle;
+    *angle = remainder(*angle, TWO_PI);
+    if (*angle < 0)
+        *angle = TWO_PI + *angle;
+}
+
+static bool facingDown(float angle)
+{
+    return angle > 0 && angle < PI;
+}
+
+static bool facingUp(float angle)
+{
+    return !facingDown(angle);
+}
+
+static bool facingRight(float angle)
+{
+    return angle < PI * 0.5 || angle > PI * 1.5;
+}
+
+static bool facingLeft(float angle)
+{
+    return !facingRight(angle);
 }
 
 float distance(float px, float py, float qx, float qy)
@@ -24,25 +43,21 @@ float distance(float px, float py, float qx, float qy)
 void castRay(float rayAngle, int rayId)
 {
     ray_t* ray = &rays[rayId];
-    ray->angle = normalizeAngle(rayAngle);
-
-    bool isRayFacingDown = ray->angle > 0 && ray->angle < PI;
-    bool isRayFacingUp = !isRayFacingDown;
-    bool isRayFacingRight = ray->angle < PI * 0.5 || ray->angle > PI * 1.5;
-    bool isRayFacingLeft = !isRayFacingRight;
+    ray->angle = rayAngle;
+    normalizeAngle(&ray->angle);
 
     // Horizontal intersections
     float yintercept = floor(player.y / TILE_SIZE) * TILE_SIZE;
-    if (isRayFacingDown)
+    if (facingDown(ray->angle))
         yintercept += TILE_SIZE;
     
     float xintercept = player.x + ((yintercept - player.y) / tan(ray->angle));
     float ystep = TILE_SIZE;
-    if (isRayFacingUp)
+    if (facingUp(ray->angle))
         ystep *= -1;
 
     float xstep = TILE_SIZE / tan(ray->angle);
-    if ((isRayFacingLeft && xstep > 0) || (isRayFacingRight && xstep < 0))
+    if ((facingLeft(ray->angle) && xstep > 0) || (facingRight(ray->angle) && xstep < 0))
         xstep *= -1;
     
     float nextIntersectionX = xintercept;
@@ -55,7 +70,7 @@ void castRay(float rayAngle, int rayId)
 
     while (isInsideMapBounds(nextIntersectionX, nextIntersectionY))
     {
-        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (isRayFacingDown ? 0 : 1));
+        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (facingDown(ray->angle) ? 0 : 1));
         if (gridContent != 0)
         {
             // Hit a wall
@@ -74,16 +89,16 @@ void castRay(float rayAngle, int rayId)
 
     // Vertical intersections
     xintercept = floor(player.x / TILE_SIZE) * TILE_SIZE;
-    if (isRayFacingRight)
+    if (facingRight(ray->angle))
         xintercept += TILE_SIZE;
     
     yintercept = player.y + ((xintercept - player.x) * tan(ray->angle));
     xstep = TILE_SIZE;
-    if (isRayFacingLeft)
+    if (facingLeft(ray->angle))
         xstep *= -1;
 
     ystep = TILE_SIZE * tan(ray->angle);
-    if ((isRayFacingUp && ystep > 0) || (isRayFacingDown && ystep < 0))
+    if ((facingUp(ray->angle) && ystep > 0) || (facingDown(ray->angle) && ystep < 0))
         ystep *= -1;
     
     nextIntersectionX = xintercept;
@@ -96,7 +111,7 @@ void castRay(float rayAngle, int rayId)
 
     while (isInsideMapBounds(nextIntersectionX, nextIntersectionY))
     {
-        int gridContent = getGridContent(nextIntersectionX - (isRayFacingRight ? 0 : 1), nextIntersectionY);
+        int gridContent = getGridContent(nextIntersectionX - (facingRight(ray->angle) ? 0 : 1), nextIntersectionY);
         if (gridContent != 0)
         {
             // Hit a wall
