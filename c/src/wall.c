@@ -5,6 +5,16 @@
 #include "graphics.h"
 #include "texture.h"
 
+static void darkenColor(color_t* color, float intensity)
+{
+    color_t a = (*color & 0xFF000000);
+    color_t r = (*color & 0x00FF0000) * intensity;
+    color_t g = (*color & 0x0000FF00) * intensity;
+    color_t b = (*color & 0x000000FF) * intensity;
+
+    *color = a | (r & 0x00FF0000) | (g & 0x0000FF00) | (b & 0x000000FF);
+}
+
 void generateWallProjection()
 {
     for (int x = 0; x < NUM_RAYS; x++)
@@ -42,6 +52,8 @@ void generateWallProjection()
             int texOffsetY = distFromTop * ((float)texHeight / wallStripHeight);
             
             color_t texelColor = wallTextures[texNum].textureBuffer[texOffsetY * texWidth + texOffsetX];
+            if (rays[x].wasHitVertical)
+                darkenColor(&texelColor, 0.7f);
             setPixel(x, y, texelColor);
         }
 
