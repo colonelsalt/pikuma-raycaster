@@ -6,17 +6,9 @@
 #include "defs.h"
 #include "upng.h"
 
-typedef struct
-{
-    upng_t* upngTexture;
-    int width;
-    int height;
-    color_t* textureBuffer;
-} texture_t;
+extern upng_t* textures[NUM_TEXTURES];
 
-extern texture_t wallTextures[NUM_TEXTURES];
-
-void loadWallTextures();
-void freeWallTextures();
+void loadTextures();
+void freeTextures();
 
 #endif

@@ -39,7 +39,7 @@ int getGridContent(float x, float y)
     return map[tileY][tileX];
 }
 
-void renderMap()
+void renderMapGrid()
 {
     for (int i = 0; i < MAP_NUM_ROWS; i++)
     {

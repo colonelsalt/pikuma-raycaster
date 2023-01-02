@@ -17,6 +17,6 @@ typedef struct
 extern player_t player;
 
 void movePlayer(float deltaTime);
-void renderPlayer();
+void renderMapPlayer();
 
 #endif

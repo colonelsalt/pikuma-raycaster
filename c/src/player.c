@@ -32,7 +32,7 @@ void movePlayer(float deltaTime)
     }
 }
 
-void renderPlayer()
+void renderMapPlayer()
 {
     drawScaledRect(player.x, player.y, player.width, player.height, 0xFFFFFFFF);
     

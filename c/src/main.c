@@ -10,13 +10,14 @@
 #include "ray.h"
 #include "player.h"
 #include "wall.h"
+#include "sprite.h"
 
 bool isGameRunning = false;
 int ticksLastFrame = 0;
 
 void setup()
 {
-    loadWallTextures();
+    loadTextures();
 }
 
 void processInput()
@@ -71,18 +72,21 @@ void render()
 {
     clearColorBuffer(0xFF000000);
     generateWallProjection();
-    
+
+    renderSprites();
+
     // render mini-map stuff
-    renderMap();
-    renderPlayer();
-    renderRays();
+    renderMapGrid();
+    renderMapRays();
+    renderMapSprites();
+    renderMapPlayer();
     
     renderColorBuffer();
 }
 
 void releaseResources(void)
 {
-    freeWallTextures();
+    freeTextures();
     destroyWindow();
 }
 

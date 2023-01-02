@@ -20,6 +20,6 @@ void normalizeAngle(float* angle);
 float distance(float px, float py, float qx, float qy);
 void castRay(float rayAngle, int rayId);
 void castAllRays();
-void renderRays();
+void renderMapRays();
 
 #endif

@@ -10,6 +10,6 @@ int getGridContent(float x, float y);
 
 bool isInsideMapBounds(float x, float y);
 
-void renderMap();
+void renderMapGrid();
 
 #endif
