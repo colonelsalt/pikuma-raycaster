@@ -3,6 +3,7 @@
 #include "defs.h"
 #include "map.h"
 #include "graphics.h"
+#include "utils.h"
 
 player_t player = {
     .x = WINDOW_WIDTH / 2,
@@ -19,7 +20,8 @@ player_t player = {
 void movePlayer(float deltaTime)
 {
     player.rotationAngle += player.turnDirection * player.turnSpeed * deltaTime;
-    
+    normalizeAngle(&player.rotationAngle);
+
     float moveStep = player.walkDirection * player.walkSpeed * deltaTime;
 
     float newX = player.x + cos(player.rotationAngle) * moveStep;

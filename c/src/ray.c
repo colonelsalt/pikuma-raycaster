@@ -5,15 +5,9 @@
 #include "player.h"
 #include "map.h"
 #include "graphics.h"
+#include "utils.h"
 
 ray_t rays[NUM_RAYS];
-
-void normalizeAngle(float* angle)
-{
-    *angle = remainder(*angle, TWO_PI);
-    if (*angle < 0)
-        *angle = TWO_PI + *angle;
-}
 
 static bool facingDown(float angle)
 {
@@ -33,11 +27,6 @@ static bool facingRight(float angle)
 static bool facingLeft(float angle)
 {
     return !facingRight(angle);
-}
-
-float distance(float px, float py, float qx, float qy)
-{
-    return sqrt((qx - px) * (qx - px) + (qy - py) * (qy - py));
 }
 
 void castRay(float rayAngle, int rayId)
