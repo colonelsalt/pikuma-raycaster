@@ -55,18 +55,18 @@ void castRay(float rayAngle, int rayId)
     bool horizontalWallHitFound = false;
     float horizontalWallHitX = 0;
     float horizontalWallHitY = 0;
-    int horizontalWallContent = 0;
+    int horizontalWallTexture = 0;
 
     while (isInsideMapBounds(nextIntersectionX, nextIntersectionY))
     {
-        int gridContent = getGridContent(nextIntersectionX, nextIntersectionY - (facingDown(ray->angle) ? 0 : 1));
-        if (gridContent != 0)
+        int gridTexture = getGridTexture(nextIntersectionX, nextIntersectionY - (facingDown(ray->angle) ? 0 : 1));
+        if (gridTexture != 0)
         {
             // Hit a wall
             horizontalWallHitFound = true;
             horizontalWallHitX = nextIntersectionX;
             horizontalWallHitY = nextIntersectionY;
-            horizontalWallContent = gridContent;
+            horizontalWallTexture = gridTexture;
             break;
         }
         else
@@ -96,18 +96,18 @@ void castRay(float rayAngle, int rayId)
     bool verticalWallHitFound = false;
     float verticalWallHitX = 0;
     float verticalWallHitY = 0;
-    int verticalWallContent = 0;
+    int verticalWallTexture = 0;
 
     while (isInsideMapBounds(nextIntersectionX, nextIntersectionY))
     {
-        int gridContent = getGridContent(nextIntersectionX - (facingRight(ray->angle) ? 0 : 1), nextIntersectionY);
-        if (gridContent != 0)
+        int gridTexture = getGridTexture(nextIntersectionX - (facingRight(ray->angle) ? 0 : 1), nextIntersectionY);
+        if (gridTexture != 0)
         {
             // Hit a wall
             verticalWallHitFound = true;
             verticalWallHitX = nextIntersectionX;
             verticalWallHitY = nextIntersectionY;
-            verticalWallContent = gridContent;
+            verticalWallTexture = gridTexture;
             break;
         }
         else
@@ -125,7 +125,7 @@ void castRay(float rayAngle, int rayId)
         ray->distance = yDist;
         ray->wallHitX = verticalWallHitX;
         ray->wallHitY = verticalWallHitY;
-        ray->wallHitContent = verticalWallContent;
+        ray->texture = verticalWallTexture;
         ray->wasHitVertical = true;
     }
     else
@@ -133,7 +133,7 @@ void castRay(float rayAngle, int rayId)
         ray->distance = xDist;
         ray->wallHitX = horizontalWallHitX;
         ray->wallHitY = horizontalWallHitY;
-        ray->wallHitContent = horizontalWallContent;
+        ray->texture = horizontalWallTexture;
         ray->wasHitVertical = false;
     }
 }

@@ -5,13 +5,17 @@
 #include "texture.h"
 #include "defs.h"
 #include "utils.h"
+#include "ray.h"
 
-#define NUM_SPRITES 3
+#define NUM_SPRITES 6
 
 static sprite_t sprites[NUM_SPRITES] = {
     { .x = 640, .y = 630, .texture = 9 }, // barrel
+    { .x = 660, .y = 690, .texture = 9 }, // barrel
     { .x = 250, .y = 600, .texture = 11 }, // table
-    { .x = 300, .y = 400, .texture = 12 } // guard
+    { .x = 250, .y = 600, .texture = 10 }, // light
+    { .x = 300, .y = 400, .texture = 12 }, // guard
+    { .x = 90,  .y = 100, .texture = 13 } // armor
 };
 
 void renderMapSprites()
@@ -20,6 +24,22 @@ void renderMapSprites()
     {
         color_t spriteColor = sprites[i].visible ? 0xFF00FFFF : 0xFF444444;
         drawScaledRect(sprites[i].x, sprites[i].y, 2, 2, spriteColor);
+    }
+}
+
+void bubbleSort(sprite_t* s, int n)
+{
+    for (int i = 0; i < n - 1; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            if (s[i].distance < s[j].distance)
+            {
+                sprite_t temp = s[i];
+                s[i] = s[j];
+                s[j] = temp;
+            }
+        }
     }
 }
 
@@ -43,9 +63,9 @@ void renderSprites()
         const float EPSILON = 0.2f;
         if (angle < (FOV_ANGLE / 2) + EPSILON)
         {
-            sprites[i].visible = true;
             sprites[i].angle = angle;
             sprites[i].distance = distance(sprites[i].x, sprites[i].y, player.x, player.y);
+            sprites[i].visible = true;
             visibleSprites[numVisibleSprites] = sprites[i];
             numVisibleSprites++;
         }
@@ -55,12 +75,16 @@ void renderSprites()
         }
     }
 
+    bubbleSort(visibleSprites, numVisibleSprites);
+
     // Render visible sprites
     for (int i = 0; i < numVisibleSprites; i++)
     {
         sprite_t sprite = visibleSprites[i];
 
-        float spriteHeight = (TILE_SIZE / sprite.distance) * DIST_PROJ_PLANE;
+        float perpDist = sprite.distance * cos(sprite.angle);
+
+        float spriteHeight = (TILE_SIZE / perpDist) * DIST_PROJ_PLANE;
         float spriteWidth = spriteHeight;
 
         // Sprite top y
@@ -94,7 +118,7 @@ void renderSprites()
                     color_t* texBuffer = (color_t*)upng_get_buffer(textures[sprite.texture]);
                     color_t texelColor = texBuffer[(texWidth * texOffsetY) + texOffsetX];
                     
-                    if (texelColor != 0xFFFF00FF)
+                    if (sprite.distance < rays[x].distance && texelColor != 0xFFFF00FF)
                         setPixel(x, y, texelColor);
                 }
             }

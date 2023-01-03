@@ -27,7 +27,7 @@ void movePlayer(float deltaTime)
     float newX = player.x + cos(player.rotationAngle) * moveStep;
     float newY = player.y + sin(player.rotationAngle) * moveStep;
 
-    if (getGridContent(newX, newY) == 0)
+    if (getGridTexture(newX, newY) == 0)
     {
         player.x = newX;
         player.y = newY;

@@ -43,7 +43,7 @@ void generateWallProjection()
         else
             texOffsetX = (int)rays[x].wallHitX % TILE_SIZE;
 
-        int texNum = rays[x].wallHitContent - 1;
+        int texNum = rays[x].texture - 1;
         int texWidth = upng_get_width(textures[texNum]);
         int texHeight = upng_get_height(textures[texNum]);
 

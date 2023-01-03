@@ -28,7 +28,7 @@ bool isInsideMapBounds(float x, float y)
 }
 
 
-int getGridContent(float x, float y)
+int getGridTexture(float x, float y)
 {
     if (x < 0 || x > MAP_NUM_COLS * TILE_SIZE || y < 0 || y > MAP_NUM_ROWS * TILE_SIZE)
         return 1;
